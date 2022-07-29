@@ -3,7 +3,7 @@
 $config = require_once('./config.php');
 require_once('./class/MetaData.php');
 
-$rawData = file_get_contents($config['metadata_dir'] . MetaData::JSON_FILE_NAME);
+$rawData = file_get_contents($config['metadata_dir'] . '/' . MetaData::JSON_FILE_NAME);
 if ($rawData) {
     $rows = json_decode($rawData, true);
     $metaData = new MetaData($config['metadata_dir']);
