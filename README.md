@@ -60,3 +60,9 @@ php csv_to_json.php
 ```
 
 csv→json
+
+## Materials Provided
+
+カツのGIFアニメ様
+
+http://katus-gifani.sakura.ne.jp/
