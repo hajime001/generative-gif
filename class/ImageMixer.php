@@ -79,7 +79,7 @@ class ImageMixer
                     }
                     $imgFileName = "{$i}.gif";
                     $dstGifAnime->output("{$this->__config['image_dir']}/{$imgFileName}");
-                    $metaData->writeItemAndAdd($this->__buildJsonItem($i, $dna, $imgFileName, $attributes));
+                    $metaData->writeItemAndAdd($this->__buildItem($i, $dna, $imgFileName, $attributes));
                     break;
                 } else {
                     if (++$failCount >= self::FAIL_MAX) {
@@ -92,7 +92,7 @@ class ImageMixer
         $metaData->writeCsvMetaData();;
     }
 
-    private function __buildJsonItem(int $edition, string $dna, string $imgFileName, array $attributes): array
+    private function __buildItem(int $edition, string $dna, string $imgFileName, array $attributes): array
     {
         return [
             'name' => "{$this->__config['name_prefix']}{$this->__config['name_spacer']}{$edition}",
