@@ -35,11 +35,6 @@ class ImageMixer
     private $__attributeMap = [];
 
     /**
-     * @var MetaData
-     */
-    private $__metaData = null;
-
-    /**
      * @var int
      */
     private $__startTime = 0;
@@ -47,7 +42,6 @@ class ImageMixer
     public function __construct($config)
     {
         $this->__config = $config;
-        $this->__metaData = new MetaData($config['metadata_dir']);
         $this->__loadSrcImages();
         $this->__startTime = time();
     }
@@ -66,6 +60,7 @@ class ImageMixer
     {
         $this->__makeBuildDir();
         $dstGifAnime = new DstImage();
+        $metaData = new MetaData($this->__config['metadata_dir']);
         $failCount = 0;
         for ($i = 1; $i <= $this->__config['generate_num']; ++$i) {
             while (true) {
@@ -84,7 +79,7 @@ class ImageMixer
                     }
                     $imgFileName = "{$i}.gif";
                     $dstGifAnime->output("{$this->__config['image_dir']}/{$imgFileName}");
-                    $this->__metaData->writeItemAndAdd($this->__buildJson($i, $dna, $imgFileName, $attributes));
+                    $metaData->writeItemAndAdd($this->__buildJson($i, $dna, $imgFileName, $attributes));
                     break;
                 } else {
                     if (++$failCount >= self::FAIL_MAX) {
@@ -93,8 +88,8 @@ class ImageMixer
                 }
             }
         }
-        $this->__metaData->writeJsonMetaData();
-        $this->__metaData->writeCsvMetaData();;
+        $metaData->writeJsonMetaData();
+        $metaData->writeCsvMetaData();;
     }
 
     private function __buildJson(int $edition, string $dna, string $imgFileName, array $attributes): array
