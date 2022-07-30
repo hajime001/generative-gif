@@ -97,7 +97,7 @@ class ImageMixer
         return [
             'name' => "{$this->__config['name_prefix']}{$this->__config['name_spacer']}{$edition}",
             'description' => $this->__config['description'],
-            'image' => $imgFileName,
+            'image' => "{$this->__config['base_uri']}/{$imgFileName}",
             'dna' => sha1($dna),
             'edition' => $edition,
             'date' => time(),
