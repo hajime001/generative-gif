@@ -5,13 +5,13 @@ require_once('./class/MetaData.php');
 
 $rawData = file_get_contents($config['metadata_dir'] . '/' . MetaData::JSON_FILE_NAME);
 if ($rawData) {
-    $rows = json_decode($rawData, true);
+    $items = json_decode($rawData, true);
     $metaData = new MetaData($config['metadata_dir']);
-    foreach ($rows as $row) {
-        $row['name'] = "{$config['name_prefix']}{$config['name_spacer']}{$row['edition']}";
-        $row['description'] = $config['description'];
-        $row['image'] = "{$config['base_uri']}/{$row['edition']}.gif";
-        $metaData->writeRowAndAdd($row);
+    foreach ($items as $item) {
+        $item['name'] = "{$config['name_prefix']}{$config['name_spacer']}{$item['edition']}";
+        $item['description'] = $config['description'];
+        $item['image'] = "{$config['base_uri']}/{$item['edition']}.gif";
+        $metaData->writeItemAndAdd($item);
     }
     $metaData->writeJsonMetaData();
     echo "success!\n";

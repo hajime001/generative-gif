@@ -13,31 +13,31 @@ class MetaData
     /**
      * @var array
      */
-    private $__rows = [];
+    private $__items = [];
 
     public function __construct(string $metaDataPath)
     {
         $this->__metaDataPath = $metaDataPath;
     }
 
-    public function writeRowAndAdd(array $row)
+    public function writeItemAndAdd(array $item)
     {
-        file_put_contents($this->__metaDataPath . "/{$row['edition']}.json", $this->__jsonEncode($row));
-        $this->__rows[] = $row;
+        file_put_contents($this->__metaDataPath . "/{$item['edition']}.json", $this->__jsonEncode($item));
+        $this->__items[] = $item;
     }
 
     public function writeJsonMetaData()
     {
-        foreach ($this->__rows as $row) {
-            file_put_contents($this->__metaDataPath . "/{$row['edition']}.json", $this->__jsonEncode($row));
+        foreach ($this->__items as $item) {
+            file_put_contents($this->__metaDataPath . "/{$item['edition']}.json", $this->__jsonEncode($item));
         }
-        file_put_contents($this->__metaDataPath . '/' . self::JSON_FILE_NAME, $this->__jsonEncode($this->__rows));
+        file_put_contents($this->__metaDataPath . '/' . self::JSON_FILE_NAME, $this->__jsonEncode($this->__items));
     }
 
     public function loadJsonMetaData()
     {
         $json = file_get_contents($this->__metaDataPath . '/' . self::JSON_FILE_NAME);
-        $this->__rows = json_decode($json, true);
+        $this->__items = json_decode($json, true);
     }
 
     public function loadCsvMetaData()
@@ -46,16 +46,16 @@ class MetaData
         if ($fp) {
             $headers = fgetcsv($fp);
             while ($csv = fgetcsv($fp)) {
-                $row = [];
+                $item = [];
                 foreach ($headers as $col => $header) {
                     if ($col <= 5) {
-                        $row[$header] = $csv[$col];
+                        $item[$header] = $csv[$col];
                     } else {
                         // 7列(添え字が0～)目以降はattributeと想定
-                        $row['attributes'][$header] = $csv[$col];
+                        $item['attributes'][$header] = $csv[$col];
                     }
                 }
-                $this->__rows[] = $row;
+                $this->__items[] = $item;
             }
             fclose($fp);
         }
@@ -63,13 +63,13 @@ class MetaData
 
     public function writeCsvMetaData()
     {
-        if (!empty($this->__rows)) {
+        if (!empty($this->__items)) {
             $fp = fopen($this->__metaDataPath . '/' . self::CSV_FILE_NAME, 'w');
             if ($fp) {
-                $header = $this->__getHeader($this->__rows[0]);
+                $header = $this->__getHeader($this->__items[0]);
                 fputcsv($fp, $header);
-                foreach ($this->__rows as $row) {
-                    fputcsv($fp, $this->__toRow($row));
+                foreach ($this->__items as $item) {
+                    fputcsv($fp, $this->__toRow($item));
                 }
                 fclose($fp);
             } else {
@@ -78,24 +78,24 @@ class MetaData
         }
     }
 
-    private function __getHeader(array $row): array
+    private function __getHeader(array $item): array
     {
-        $header = array_keys($row);
+        $header = array_keys($item);
         array_pop($header);
 
-        return array_merge($header, array_keys($row['attributes']));
+        return array_merge($header, array_keys($item['attributes']));
     }
 
-    private function __toRow(array $row): array
+    private function __toRow(array $item): array
     {
-        $attributes = $row['attributes'];
-        unset($row['attributes']);
+        $attributes = $item['attributes'];
+        unset($item['attributes']);
 
-        return array_merge($row, $attributes);
+        return array_merge($item, $attributes);
     }
 
-    private function __jsonEncode(array $row): string
+    private function __jsonEncode(array $item): string
     {
-        return json_encode($row, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return json_encode($item, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
 }

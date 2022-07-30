@@ -84,7 +84,7 @@ class ImageMixer
                     }
                     $imgFileName = "{$i}.gif";
                     $dstGifAnime->output("{$this->__config['image_dir']}/{$imgFileName}");
-                    $this->__metaData->writeRowAndAdd($this->__buildJson($i, $dna, $imgFileName, $attributes));
+                    $this->__metaData->writeItemAndAdd($this->__buildJson($i, $dna, $imgFileName, $attributes));
                     break;
                 } else {
                     if (++$failCount >= self::FAIL_MAX) {
