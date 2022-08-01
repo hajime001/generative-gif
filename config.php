@@ -17,7 +17,7 @@ return [
     ],
     'generate_num' => 5, // 生成数
     'file_name_delimiter' => '#',
-    'image_delay' => 20, // 画像切り替え(100で1秒に1枚。12FPSにするなら、100 * (12 / 60)で20)
+    'image_delay' => 20, // 表示間隔(100で1秒間表示。8だと「100/8」で約12.5FPS)
     'no_motion_layers' => ['background'],
     'layersOrder' => [
         'background',
