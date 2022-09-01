@@ -39,6 +39,16 @@ class ImageMixer
      */
     private $__startTime = 0;
 
+    /**
+     * @var int
+     */
+    private $__motionNum = null;
+
+    /**
+     * @var array
+     */
+    private $__rateIndexMap = [];
+
     public function __construct($config)
     {
         $this->__config = $config;
@@ -70,20 +80,22 @@ class ImageMixer
                 }
 
                 $dna = $this->__dna($indexes);
-                if (!in_array($dna, $this->__dnaTable)) {
-                    $this->__dnaTable[] = $dna;
-                    $compositionImages = $this->__compositionImages($indexes);
-                    $attributes = $this->__convertAttributes($indexes);
-                    for ($motion = 0; $motion < $this->__motionNum(); ++$motion) {
-                        $dstGifAnime->add($compositionImages[$motion]);
-                    }
-                    $imgFileName = "{$i}.gif";
-                    $dstGifAnime->output("{$this->__config['image_dir']}/{$imgFileName}");
-                    $metaData->writeItemAndAdd($this->__buildItem($i, $dna, $imgFileName, $attributes));
-                    break;
-                } else {
-                    if (++$failCount >= self::FAIL_MAX) {
-                        throw new Exception('The number of failures has exceeded the specified value.');
+                if (!$this->__isDuplicateColor($indexes)) {
+                    if (!in_array($dna, $this->__dnaTable)) {
+                        $this->__dnaTable[] = $dna;
+                        $compositionImages = $this->__compositionImages($indexes);
+                        $attributes = $this->__convertAttributes($indexes);
+                        for ($motion = 0; $motion < $this->__motionNum(); ++$motion) {
+                            $dstGifAnime->add($compositionImages[$motion]);
+                        }
+                        $imgFileName = "{$i}.gif";
+                        $dstGifAnime->output("{$this->__config['image_dir']}/{$imgFileName}");
+                        $metaData->writeItemAndAdd($this->__buildItem($i, $dna, $imgFileName, $attributes));
+                        break;
+                    } else {
+                        if (++$failCount >= self::FAIL_MAX) {
+                            throw new Exception('The number of failures has exceeded the specified value.');
+                        }
                     }
                 }
             }
@@ -129,6 +141,22 @@ class ImageMixer
         return implode('', $indexes);
     }
 
+    private function __isDuplicateColor(array $indexes): bool {
+        $bgColor = preg_replace('/^bg/', '', $this->__attributeMap['background'][$indexes[0]]);
+        foreach ($this->__config['layersOrder'] as $key => $layer) {
+            if ($layer === 'background') {
+                continue;
+            }
+
+            $partColor = $this->__attributeMap[$layer][$indexes[$key]];
+            if ($bgColor === $partColor) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * @param array $indexes
      * @return CompositionImage[]
@@ -164,39 +192,35 @@ class ImageMixer
     private
     function __motionNum(): int
     {
-        static $_motionNum = null;
-
-        if (is_null($_motionNum)) {
+        if (is_null($this->__motionNum)) {
             foreach ($this->__config['layersOrder'] as $layer) {
                 if (!$this->__isNoMotion($layer)) {
-                    $_motionNum = count($this->__srcImages[$layer][0]);
+                    $this->__motionNum = count($this->__srcImages[$layer][0]);
                     break;
                 }
             }
         }
-        assert(!is_null($_motionNum));
+        assert(!is_null($this->__motionNum));
 
-        return $_motionNum;
+        return $this->__motionNum;
     }
 
     private
     function __lotIndex(string $layer): int
     {
-        static $_rateMap = [];
-
-        if (empty($_rateMap[$layer])) {
+        if (empty($this->__rateIndexMap[$layer])) {
             $rateSum = 0;
             foreach ($this->__rates[$layer] as $index => $rate) {
                 $lower = $rateSum + 1;
                 $upper = $rateSum + $rate;
-                $_rateMap[$layer]['range'][$index] = ['lower' => $lower, 'upper' => $upper];
+                $this->__rateIndexMap[$layer]['range'][$index] = ['lower' => $lower, 'upper' => $upper];
                 $rateSum += $rate;
             }
-            $_rateMap[$layer]['max'] = $rateSum;
+            $this->__rateIndexMap[$layer]['max'] = $rateSum;
         }
 
-        $lot = mt_rand(1, $_rateMap[$layer]['max']);
-        foreach ($_rateMap[$layer]['range'] as $index => $range) {
+        $lot = mt_rand(1, $this->__rateIndexMap[$layer]['max']);
+        foreach ($this->__rateIndexMap[$layer]['range'] as $index => $range) {
             if ($range['lower'] <= $lot && $lot <= $range['upper']) {
                 return $index;
             }
