@@ -63,7 +63,7 @@ class ImageMixer
 
     private function __formatTotalTime(int $second): string
     {
-        return gmdate('H:i:s', $second);
+        return gmdate('H:i:s', $second) . "\n";
     }
 
     public function execute()
