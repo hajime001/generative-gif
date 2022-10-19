@@ -49,6 +49,11 @@ class ImageMixer
      */
     private $__rateIndexMap = [];
 
+    /**
+     * @var array
+     */
+    private $__imageNums = [];
+
     public function __construct($config)
     {
         $this->__config = $config;
@@ -66,20 +71,33 @@ class ImageMixer
         return gmdate('H:i:s', $second) . "\n";
     }
 
-    public function execute()
+    public function execute($isRebuildImage = false)
     {
-        $this->__makeBuildDir();
+        if (!$isRebuildImage) {
+            $this->__makeBuildDir();
+        }
         $dstGifAnime = new DstImage();
         $metaData = new MetaData($this->__config['metadata_dir']);
+        if ($isRebuildImage) {
+            $metaData->loadJsonMetaData();
+        }
         $failCount = 0;
         for ($i = 1; $i <= $this->__config['generate_num']; ++$i) {
             while (true) {
                 $indexes = [];
+                $dnaIndexes = [];
                 foreach ($this->__config['layersOrder'] as $key => $layer) {
-                    $indexes[$key] = $this->__lotIndex($layer);
+                    $index = $isRebuildImage ? $this->__calcIndex($metaData->getItem($i - 1), $layer) : $this->__lotIndex($layer);
+                    if ($layer != 'background') {
+                        $dnaIndexes[$key] = $index;
+                    }
+                    $indexes[$key] = $index;
+                    if ($layer == $this->__config['image_name_layer']) {
+                        $imageName = $this->__attributeMap[$layer][$index];
+                    }
                 }
 
-                $dna = $this->__dna($indexes);
+                $dna = $this->__dna($dnaIndexes);
                 if (!$this->__isDuplicateColor($indexes)) {
                     if (!in_array($dna, $this->__dnaTable)) {
                         $this->__dnaTable[] = $dna;
@@ -88,20 +106,29 @@ class ImageMixer
                         for ($motion = 0; $motion < $this->__motionNum(); ++$motion) {
                             $dstGifAnime->add($compositionImages[$motion]);
                         }
-                        $imgFileName = "{$i}.gif";
+//                         $imgFileName = "{$i}.gif";
+                        $imageNum = $this->__imageNums[$imageName] = isset($this->__imageNums[$imageName]) ? ($this->__imageNums[$imageName] + 1) : 1;
+                        $imgFileName = sprintf('%s-%s-%d.gif', $this->__config['chara_name'], $imageName, $imageNum);
                         $dstGifAnime->output("{$this->__config['image_dir']}/{$imgFileName}");
-                        $metaData->writeItemAndAdd($this->__buildItem($i, $dna, $imgFileName, $attributes));
+                        if (!$isRebuildImage) {
+                            $metaData->writeItemAndAdd($this->__buildItem($i, $dna, $imgFileName, $attributes));
+                        }
                         break;
                     } else {
                         if (++$failCount >= self::FAIL_MAX) {
-                            throw new Exception('The number of failures has exceeded the specified value.');
+                            // throw new Exception('The number of failures has exceeded the specified value.');
                         }
                     }
                 }
             }
         }
+        echo "failCount: {$failCount}";
         $metaData->writeJsonMetaData();
-        $metaData->writeCsvMetaData();;
+        $metaData->writeCsvMetaData();
+    }
+
+    private function __calcIndex(array $item, $layer) {
+        return array_search($item['attributes'][$layer], $this->__attributeMap[$layer]);
     }
 
     private function __buildItem(int $edition, string $dna, string $imgFileName, array $attributes): array

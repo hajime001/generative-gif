@@ -78,6 +78,10 @@ class MetaData
         }
     }
 
+    public function getItem(int $i) {
+        return $this->__items[$i];
+    }
+
     private function __getHeader(array $item): array
     {
         $header = array_keys($item);
