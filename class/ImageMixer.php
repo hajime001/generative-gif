@@ -101,15 +101,19 @@ class ImageMixer
                 if (!$this->__isDuplicateColor($indexes)) {
                     if (!in_array($dna, $this->__dnaTable)) {
                         $this->__dnaTable[] = $dna;
-                        $compositionImages = $this->__compositionImages($indexes);
-                        $attributes = $this->__convertAttributes($indexes);
-                        for ($motion = 0; $motion < $this->__motionNum(); ++$motion) {
-                            $dstGifAnime->add($compositionImages[$motion]);
-                        }
-//                         $imgFileName = "{$i}.gif";
+
                         $imageNum = $this->__imageNums[$imageName] = isset($this->__imageNums[$imageName]) ? ($this->__imageNums[$imageName] + 1) : 1;
                         $imgFileName = sprintf('%s-%s-%d.gif', $this->__config['chara_name'], $imageName, $imageNum);
-                        $dstGifAnime->output("{$this->__config['image_dir']}/{$imgFileName}");
+                        $imgFilePath = "{$this->__config['image_dir']}/{$imgFileName}";
+                        if (!file_exists($imgFilePath)) {
+                            $compositionImages = $this->__compositionImages($indexes);
+                            $attributes = $this->__convertAttributes($indexes);
+                            for ($motion = 0; $motion < $this->__motionNum(); ++$motion) {
+                                $dstGifAnime->add($compositionImages[$motion]);
+                            }
+//                         $imgFileName = "{$i}.gif";
+                            $dstGifAnime->output($imgFilePath);
+                        }
                         if (!$isRebuildImage) {
                             $metaData->writeItemAndAdd($this->__buildItem($i, $dna, $imgFileName, $attributes));
                         }
