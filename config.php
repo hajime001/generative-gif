@@ -12,7 +12,7 @@ $layerOrders = [
             'face',
             'hairpin',
             'accessory',
-        ]
+        ],
     ],
     'otoanime' => [
         'generate_num' => 2222,
@@ -27,7 +27,7 @@ $layerOrders = [
             'arm',
             'hat',
             'rabbit',
-        ]
+        ],
     ],
     'ukaanime' => [
         'generate_num' => 2222,
@@ -42,7 +42,7 @@ $layerOrders = [
             'rod',
             'hat',
             'accessory',
-        ]
+        ],
     ],
     'xiaoanime' => [
         'generate_num' => 2223,
@@ -55,7 +55,7 @@ $layerOrders = [
             'head',
             'panda',
             'hat',
-        ]
+        ],
     ],
     'yuianime' => [
         'generate_num' => 2222,
@@ -70,7 +70,7 @@ $layerOrders = [
             'makimono',
             'arm',
             'leg',
-        ]
+        ],
     ],
 ];
 

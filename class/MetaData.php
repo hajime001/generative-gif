@@ -40,6 +40,17 @@ class MetaData
         $this->__items = json_decode($json, true);
     }
 
+    public function convert() {
+        foreach($this->__items as &$item) {
+            $imageName = basename($item['image']);
+            $noExtImageName = substr($imageName, 0, -4);
+            list($chara, $color, $no) = explode('-', $noExtImageName);
+
+            $item['name'] = sprintf('%s-%s #%04d', ucfirst($chara), ucfirst($color), $no);
+            $item['description'] = 'CryptoNinja Children(CNC) is CryptoNinja fan art by mkm. A portion of the profits will be donated to Ninja Terakoya, a free school on the Metaverse.  \nhttps://ninjaterakoya.com/';
+        }
+    }
+
     public function loadCsvMetaData()
     {
         $fp = fopen($this->__metaDataPath . '/' . self::CSV_FILE_NAME, 'r');
