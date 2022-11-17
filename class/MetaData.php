@@ -93,6 +93,10 @@ class MetaData
         return $this->__items[$i];
     }
 
+    public function setItem(int $i, array $item) {
+        $this->__items[$i] = $item;
+    }
+
     private function __getHeader(array $item): array
     {
         $header = array_keys($item);
