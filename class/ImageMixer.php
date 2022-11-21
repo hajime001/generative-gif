@@ -71,65 +71,8 @@ class ImageMixer
         return gmdate('H:i:s', $second) . "\n";
     }
 
-    public function execute($isRebuildImage = false)
+    public function execute($isRebuildImage = false, $start = 0, $end = -1)
     {
-        $updateIds = [
-            4216,
-            10512,
-            9687,
-            10586,
-            372,
-            2517,
-            5457,
-            7965,
-            10537,
-            3634,
-            4136,
-            9170,
-            4111,
-            9390,
-            883,
-            2018,
-            7620,
-            8695,
-            3383,
-            3376,
-            8031,
-            4080,
-            3787,
-            9501,
-            1417,
-            10691,
-            9150,
-            1961,
-            2380,
-            9608,
-            9503,
-            5583,
-            7005,
-            5334,
-            7177,
-            6302,
-            9356,
-            8971,
-            4162,
-            2531,
-            8698,
-            7490,
-            8091,
-            6768,
-            4642,
-            6819,
-            6387,
-            6079,
-            9559,
-            3228,
-            1557,
-            10170,
-            6320,
-            934,
-            1064,
-        ];
         if (!$isRebuildImage) {
             $this->__makeBuildDir();
         }
@@ -139,35 +82,36 @@ class ImageMixer
             $metaData->loadJsonMetaData();
         }
         $failCount = 0;
-        foreach($updateIds as $i) {
+        for ($i = $start; $i <= $end; ++$i) {
             while (true) {
                 $indexes = [];
                 $dnaIndexes = [];
                 $item = $metaData->getItem($i - 1);
                 foreach ($this->__config['layersOrder'] as $key => $layer) {
-                    if ($layer == 'hat') {
-                        $index = array_search('kiyoshi', $this->__attributeMap['hat']);
-                    } elseif($layer == 'face') {
-                        $name = $item['name'];
-                        $charaName = explode(' ', $name)[0];
-                        $faceColor = strtolower(explode('-', $charaName)[1]);
-                        $index = array_search($faceColor, $this->__attributeMap['face']);
-                    } else {
-                        $index = $this->__lotIndex($layer);;
-                    }
-                    $indexes[$key] = $index;
+                    $index = $isRebuildImage ? $this->__calcIndex($item, $layer) : $this->__lotIndex($layer);
                     if ($layer != 'background') {
                         $dnaIndexes[$key] = $index;
+                    }
+                    $indexes[$key] = $index;
+                    if ($layer == $this->__config['image_name_layer']) {
+                        $imageName = $this->__attributeMap[$layer][$index];
                     }
                 }
 
                 $dna = $this->__dna($dnaIndexes);
                 $isDuplicateColor = $this->__isDuplicateColor($indexes);
-                if (!$isDuplicateColor) {
+                if ($isDuplicateColor) {
+                    $tmp = isset($this->__imageNums[$imageName]) ? ($this->__imageNums[$imageName] + 1) : 1;
+                    $imgFileName = sprintf('%s-%s-%d.gif', $this->__config['chara_name'], $imageName, $tmp);
+                    echo $imgFileName . "\r\n";
+                }
+                if (true) {
                     if (!in_array($dna, $this->__dnaTable)) {
                         $this->__dnaTable[] = $dna;
 
-                        $imgFileName = sprintf('%d.gif', $i);
+//                        $imageNum = $this->__imageNums[$imageName] = isset($this->__imageNums[$imageName]) ? ($this->__imageNums[$imageName] + 1) : 1;
+//                        $imgFileName = sprintf('%s-%s-%d.gif', $this->__config['chara_name'], $imageName, $imageNum);
+                        $imgFileName = basename($item['image']);
                         $imgFilePath = "{$this->__config['image_dir']}/{$imgFileName}";
                         if (!file_exists($imgFilePath)) {
                             $compositionImages = $this->__compositionImages($indexes);
@@ -175,16 +119,10 @@ class ImageMixer
                             for ($motion = 0; $motion < $this->__motionNum(); ++$motion) {
                                 $dstGifAnime->add($compositionImages[$motion]);
                             }
-//                         $imgFileName = "{$i}.gif";
                             $dstGifAnime->output($imgFilePath);
                         }
                         if (!$isRebuildImage) {
                             $metaData->writeItemAndAdd($this->__buildItem($i, $dna, $imgFileName, $attributes));
-                        } else {
-                            $item['attributes'] = $attributes;
-                            $item['dna'] = sha1($dna);
-                            $item['date'] = time();
-                            $metaData->setItem($i - 1, $item);
                         }
                         break;
                     } else {
